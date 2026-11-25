@@ -5,7 +5,7 @@ Brief for AI agents working on RepVault docs, specs or code. Read this first.
 ## Context
 
 - **Product:** RepVault, vertical SaaS for gyms, yoga studios, and fitness, dance and martial-arts studios.
-- **Portfolio:** CraftLayer. Shared platform lives in [`core/`](../core/README.md). Do not re-specify core modules here; reference them.
+- **Portfolio:** CraftLayer. Shared platform lives in [`core/`](https://github.com/craftLayer-studio/craftlayer-core/blob/main/README.md). Do not re-specify core modules here; reference them.
 - **Market:** India first (Tier 1–3 cities), global-ready later. Prices in INR with USD equivalents.
 - **Wedge:** A QR code at the gym entrance. Members scan to check in. Walk-ins scan to claim a free trial pass, which captures their phone number with consent. Attendance data powers renewals, churn alerts and engagement.
 - **Business goal:** Earn money fast. MVP sellable in 6–8 weeks, first 10 paying gyms within 60 days of MVP.
@@ -48,7 +48,7 @@ Brief for AI agents working on RepVault docs, specs or code. Read this first.
 
 ## Core modules used
 
-QR engine, public storefront (gym page with plans), booking engine (PT and classes), payments, customer CRM, WhatsApp messaging, loyalty and rewards (challenges, referrals), reviews and Google review funnel, staff app, analytics, onboarding wizard. See [core/](../core/README.md).
+QR engine, public storefront (gym page with plans), booking engine (PT and classes), payments, customer CRM, WhatsApp messaging, loyalty and rewards (challenges, referrals), reviews and Google review funnel, staff app, analytics, onboarding wizard. See [core/](https://github.com/craftLayer-studio/craftlayer-core/blob/main/README.md).
 
 ## Open questions
 

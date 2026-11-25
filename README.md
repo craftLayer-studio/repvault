@@ -56,4 +56,10 @@ Prices exclude 18% GST on the software fee. USD at ₹88 = $1 (estimate). Full d
 - [04 Market research](docs/04-market-research.md)
 - [05 Pricing and revenue](docs/05-pricing-and-revenue.md)
 - [06 Go-to-market and onboarding](docs/06-go-to-market-and-onboarding.md)
-- Shared platform: [core/](../core/README.md)
+- Shared platform: [core/](https://github.com/craftLayer-studio/craftlayer-core/blob/main/README.md)
+
+## Licence
+
+Source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). Personal, educational, research and non-profit use is free. **Any commercial use requires a paid licence or written permission from CraftLayer Studio.** See [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md).
+
+Part of the [CraftLayer Products](https://github.com/craftLayer-studio/craftlayer-products) portfolio.
