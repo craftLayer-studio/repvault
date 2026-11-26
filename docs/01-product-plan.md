@@ -61,6 +61,8 @@ Gyms lose money in three places: walk-ins who never convert, renewals that lapse
 
 ### MVP (weeks 1–8, sellable)
 
+Build status (2026-11-26): R2–R8 built in the MVP app with demo data and simulated WhatsApp/payments; R1 partly (plan editing, no wizard or Excel import); R9 PT booking and commission built early. See README "Features: built vs planned".
+
 | ID | Feature | P | Metric moved | Core module |
 |---|---|---|---|---|
 | R1 | Gym setup wizard: plans, batches, staff, import members from Excel | P0 | Activation | Onboarding wizard |

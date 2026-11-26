@@ -58,3 +58,68 @@ QR engine, public storefront (gym page with plans), booking engine (PT and class
 4. Do we act as WhatsApp BSP via a partner (Gupshup, Wati, AiSensy) or use Meta Cloud API directly? Affects cost per message and onboarding time.
 5. Class-heavy studios (yoga, Zumba) may need class booking with capacity limits in MVP rather than P1. Validate in first 10 customer calls.
 6. GST on gym memberships moved to 5% without ITC from 22 September 2025 per several tax sites; confirm with a CA before building invoice templates.
+
+## Code
+
+Next.js 16 (App Router, webpack), React 19, TypeScript strict, Drizzle ORM on Postgres (PGlite locally and in tests), Astryx design system with the `gothic` theme.
+
+### Structure
+
+| Path | What lives there |
+|---|---|
+| `src/domain/` | Pure business rules: memberships and freeze, churn rules, reminder schedule, consent, trials, PT slots and commission, money (paise, GST), phone (E.164), IST time, UPI links, message templates. No React, Next or I/O. Unit tests next to each file. |
+| `src/server/db/` | Drizzle schema, client (`getDb`: PGlite file DB or `DATABASE_URL`), demo seed. Migrations are in `drizzle/` (generated, committed). |
+| `src/server/store/` | Use cases and data access, each scoped by `org_id`. `store.test.ts` runs them against in-memory PGlite. |
+| `src/server/adapters/` | `messaging.ts` (simulated WhatsApp to the `outbox` table), `payments.ts` (UPI intent links). |
+| `src/server/` | `http.ts` (input parsing, JSON errors), `session.ts` (signed httpOnly staff cookie, `requireStaff`), `rate-limit.ts`, `pages.ts`, `qr.ts`. |
+| `src/app/api/` | Thin route handlers: `public/*` (QR pages, rate-limited, no login), `auth/*`, `staff/*`, `owner/*`, `demo/reset`. |
+| `src/app/` | Pages: `/` landing, `/demo`, `/c/[token]` check-in, `/t/[token]` trial, `/m/[token]` member page, `/login`, `/desk`, `/owner`, `/owner/messages`, `/owner/settings`, `/owner/qr`, `/pt`. |
+| `src/components/` | Client components built from Astryx templates (dashboard, login-card, centered-hero, contact-form, shell-top-nav). |
+
+### Commands
+
+`pnpm dev` (port 3142), `pnpm typecheck && pnpm lint && pnpm test && pnpm build` before every push, `pnpm exec astryx doctor --built .`, `pnpm db:generate` after schema changes, `pnpm db:seed [--reset]`.
+
+### Rules
+
+- Every business row has `org_id`; every query filters by it. Customers are unique per `(org_id, phone)` with phone in E.164.
+- Money is integer paise; GST in basis points. Prices and totals are computed on the server from the plan, never taken from the client.
+- Times are `timestamptz` (UTC); membership days are IST calendar days (`endAt` = IST midnight of the last valid day).
+- Consent: two separate purposes (`service`, `marketing`), append-only `consent_records`, latest wins. Utility messages need `service`, marketing needs `marketing`. Messages without consent are logged as `skipped_no_consent`, never sent.
+- Automated messages carry a `dedupe_key` so re-running reminders never double-sends.
+- Staff actions call `requireStaff([...roles])` on the server and `assertSameOrigin`. Public QR endpoints are rate-limited; QR and member tokens are 128-bit random.
+- UI: Astryx components and tokens only. No raw `div`/`span` layout, no hex or px, no Tailwind. Read props with `pnpm exec astryx component <Name>`.
+- Commits: conventional subjects. Never add a `Co-Authored-By` trailer or a "Generated with" line.
+
+<!-- ASTRYX:START -->
+Astryx v0.7.17 · 174 components
+CLI: run every command as `pnpm exec astryx <cmd>` (shown below as `astryx ...`).
+
+SETUP (once, in app entry e.g. main.tsx) — without these, components render unstyled:
+  import "@astryxdesign/core/reset.css";
+  import "@astryxdesign/core/astryx.css";
+
+WORKFLOW — start every page from a template, never from scratch:
+1. `astryx build "<idea>"` — names the template to scaffold from and the parts it lacks.
+2. `astryx template <name> <path>` — scaffold it; keep its frame, gap and padding; replace the content.
+3. `astryx component <Name>` to read props before using one; `astryx template <Block>` prints a block example to read for a part it lacks. Astryx names differ from other libraries: buttons, badges, tokens and tabs take their text in `label` (Text, Heading and Link take children), booleans start with `is` or `has` (`isOpen`, `isDisabled`), and every input takes `value` and `onChange`.
+Changing an existing page? Keep it: skip step 2 and add components inside its sections; read a block example when it helps.
+Before you deliver a build, run `astryx doctor --built <dir>`; don't deliver it if it fails.
+
+RULES:
+- No <div> — components handle all layout and spacing.
+- Read `astryx docs layout` before changing a template's frame.
+- Dense data = rows (Table, List/Item), not Card-wrapped lists. Badge = counts only.
+- Style with component props first, then tokens (var(--color-*|--spacing-*|--radius-*)). No raw hex/px. No StyleX/Tailwind compiler here — don't use xstyle/utility classes directly. Some templates use StyleX and need a compiler plugin; see `astryx docs styling-overview`.
+- THEMES: palettes and custom colors go through the theme, never :root overrides; so does a denser or roomier app (`editor set <name> spacing tight`), never gap and padding changes page by page. A change to one kind of part (the sidebar, its selected item, the gaps in a form) is a theme change too, not props on one page: `editor how "<ask>"` names the `set … --on <part>` line. No app yet: `astryx experimental theme preview app <dir>` makes a starter app that shows the theme. To make or change a theme (colors, fonts, corners, spacing, a look from a picture), prefer the experimental theme editor over hand-written theme files: `astryx experimental theme editor new <name> --like neutral`, then `editor set <name> <thing> <value>` or `editor how "<what you want>"`; wire it with `astryx theme add <name>`; after each change look at it with `astryx experimental theme editor show <name> --png` (takes pictures of real components) and open the PNGs it writes; a theme change is not done until you have looked at the pictures. In code, extend an imported theme to customize it; `theme eject <slug>` only forks source. See `astryx docs theme`.
+- SELF-CHECK: re-read the file; replace any raw <div>/<span>, imported .css/@apply, or hardcoded #hex/px with the component or a token.
+
+`astryx help` lists every command. Key ones beyond the workflow:
+  search "<query>"   find any component / hook / doc / template
+  discover <words>   integrations you could add
+  docs <topic>       getting-started, principles, tokens, theme … (`astryx docs` lists all)
+  docs cli           commands and API reference
+  docs authoring     build an integration package, and every field it holds
+  upgrade --from <old version> --apply   run after a dependency bump
+To remove this block, run `astryx init --remove-agents`, which removes it from the agent files at the project root and in the folder you run it in; from any other file it leaves, delete everything from ASTRYX:START to ASTRYX:END.
+<!-- ASTRYX:END -->

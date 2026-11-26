@@ -4,6 +4,63 @@
 
 RepVault is vertical SaaS for independent gyms, yoga studios, CrossFit/functional boxes, and dance and martial-arts studios in India. A QR code at the entrance handles member check-in and walk-in trial sign-ups. Attendance data then drives the money features: WhatsApp renewal reminders with UPI links, churn alerts when a member stops showing up, PT session booking with trainer commissions, and gamified challenges that keep members coming back.
 
+**Status:** MVP, demo data, simulated messaging and payments. Live site (planned): [repvault.craftlayer.store](https://repvault.craftlayer.store).
+
+## How to run
+
+Requirements: Node 20.9+ and pnpm 11.
+
+```bash
+pnpm install
+cp .env.example .env      # optional; defaults work for local dev
+pnpm dev                  # http://localhost:3142
+```
+
+The first request creates a local Postgres (PGlite) database in `./.data/pglite`, runs the migrations in `drizzle/` and seeds a fictional demo gym. Set `DATABASE_URL` to use a real Postgres instead.
+
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Dev server on port 3142 (webpack) |
+| `pnpm build` / `pnpm start` | Production build and server |
+| `pnpm typecheck` / `pnpm lint` / `pnpm test` | Quality gates (CI runs all of them plus the build) |
+| `pnpm db:seed` | Seed an empty database; `pnpm db:seed --reset` wipes and reseeds the demo gym |
+| `pnpm db:generate` | Generate a SQL migration after changing `src/server/db/schema.ts` |
+| `pnpm exec astryx doctor --built .` | Check Astryx design-system usage |
+
+## Demo walkthrough
+
+The demo gym is **Kesari Forge Fitness (Demo)**, a fictional gym in Indore with about 45 members, 5 walk-in leads, 2 trainers and 5 weeks of check-ins. All data is generated relative to today.
+
+1. Open `/` and click **Try the demo** (`/demo`). It shows both entrance QR codes, sample member pages and the staff phones.
+2. **Walk-in QR** (`/t/<token>`): enter a name and any Indian mobile number. Both consent boxes start unticked. You get a trial pass; with the "updates" box ticked, the pass also goes to the simulated WhatsApp outbox.
+3. **Entrance QR** (`/c/<token>`): check in with the same phone (the device is remembered, so the next scan is one tap), or with a member phone from `/demo`. Expired members get a renew link instead.
+4. **Staff sign-in** (`/login`): owner `+91 98110 00001`, front desk `+91 98110 00002`, trainer `+91 98110 00003`. The OTP is shown on screen (demo mode).
+5. **Front desk** (`/desk`): live attendance (refreshes every 10 s), the new lead appears under Walk-in leads; sell a plan to convert it, take part-payments, freeze, or add a new member.
+6. **Owner dashboard** (`/owner`): active members, expiring in 7 days, revenue this month, check-ins and the 14-day attendance trend, peak hours, and the at-risk list with Nudge / Call / Dismiss. **Send today's reminders** runs the renewal and dues automation.
+7. **Messages** (`/owner/messages`): every simulated WhatsApp, with consent-skipped messages marked.
+8. **Member page** (`/m/<token>`, the link inside every WhatsApp): renew with a UPI intent link (`upi://pay?...`), "Demo: paid" simulates the payment, book a PT slot, and switch WhatsApp consent on or off.
+9. **PT sessions** (`/pt`): book for a member, mark done / no-show, and see trainer commission for the month.
+10. **Settings** (`/owner/settings`): plans and GST, printable QR sheet (`/owner/qr`), DPDP data export and erase, and demo reset.
+
+## Features: built vs planned
+
+| ID | Feature | Status |
+|---|---|---|
+| R2 | Entrance QR check-in, desk check-in, live attendance | Built |
+| R3 | Walk-in trial QR, consented phone capture, lead pipeline | Built |
+| R4 | Plans with GST, part-payments and dues, freeze, invoice numbers | Built (invoice PDF not built) |
+| R5 | WhatsApp renewal (T-7, T-3, T-0, T+3, T+10 win-back) and dues reminders with UPI link | Built, simulated outbox |
+| R6 | Rule-based churn alerts and at-risk list with outreach log | Built |
+| R7 | Owner dashboard: active, expiring, revenue, attendance trend, peak hours, leads | Built |
+| R8 | DPDP consent (two separate opt-ins, notice version), opt-out, export, erase | Built |
+| R9 | PT booking (desk and member self-booking), session sign-off, commission report | Built (PT packs and payment for PT not built) |
+| R1 | Setup wizard and Excel import | Not built (plans editable in Settings; demo is seeded) |
+| R10-R20 | Class booking, diet plans, reviews, referrals, campaigns, challenges, turnstiles, multi-branch | Planned |
+
+Integrations are adapters: `simulated` WhatsApp writes to the `outbox` table; payments use free UPI intent links, confirmed at the desk (or by the demo button). No real API keys or third-party calls.
+
+Contact: [repvault@craftlayer.store](mailto:repvault@craftlayer.store) (product), [hello@craftlayer.store](mailto:hello@craftlayer.store) (general), [licensing@craftlayer.store](mailto:licensing@craftlayer.store) (commercial licences). Company site: [craftlayer.store](https://craftlayer.store).
+
 ## Ideal customer (ICP)
 
 | Attribute | Primary ICP | Secondary ICP |
