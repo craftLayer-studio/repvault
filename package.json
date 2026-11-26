@@ -21,13 +21,15 @@
     "@astryxdesign/core": "0.7.17",
     "@astryxdesign/theme-gothic": "0.7.17",
     "@electric-sql/pglite": "0.6.0",
+    "@heroicons/react": "2.2.0",
     "@stylexjs/stylex": "0.19.1",
     "drizzle-orm": "0.45.4",
     "next": "16.4.6",
     "pg": "8.23.1",
     "qrcode": "1.5.4",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "recharts": "3.10.1"
   },
   "devDependencies": {
     "@astryxdesign/cli": "0.7.17",
