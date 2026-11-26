@@ -84,3 +84,16 @@ export function personName(body: Record<string, unknown>, key = "name"): string 
   if (v.length < 2 || v.length > 60) throw new BadRequest("Enter your name (2-60 characters)");
   return v;
 }
+
+/** Reject cross-site form posts to cookie-authenticated endpoints (belt and braces with SameSite=Lax). */
+export function assertSameOrigin(request: Request): void {
+  const origin = request.headers.get("origin");
+  if (!origin) return;
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  try {
+    if (new URL(origin).host !== host) throw new BadRequest("Cross-site request blocked");
+  } catch (e) {
+    if (e instanceof BadRequest) throw e;
+    throw new BadRequest("Bad origin");
+  }
+}

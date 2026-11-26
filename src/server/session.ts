@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { secureCookies } from "./config";
 import { cookies } from "next/headers";
 import { getDb } from "./db/client";
 import { StoreError } from "./store/errors";
@@ -48,7 +49,7 @@ export async function setSessionCookie(s: StaffSession): Promise<void> {
   (await cookies()).set(SESSION_COOKIE, encodeSession(s), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: secureCookies(),
     path: "/",
     maxAge: SESSION_TTL_S,
   });

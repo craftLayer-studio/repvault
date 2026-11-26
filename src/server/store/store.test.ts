@@ -287,3 +287,15 @@ describe("tenancy", () => {
     await expect(deskCheckIn(db, other.orgId, mine[0].id, NOW)).rejects.toThrow(/not found/);
   });
 });
+
+describe("member page after early renewal", () => {
+  it("shows the member as active until the renewed end date", async () => {
+    const m = (await listMembers(db, orgId, NOW)).find((x) => x.membership?.status === "expiring" && x.membership.daysToExpiry === 3)!;
+    const page = await memberPage(db, m.accessToken, NOW);
+    await simulateMemberPayment(db, m.accessToken, page.plans[0].id, NOW);
+    const after = await memberPage(db, m.accessToken, NOW);
+    expect(after.membership!.status).toBe("active");
+    expect(after.renewsTo).not.toBeNull();
+    expect(after.membership!.daysToExpiry).toBe(33);
+  });
+});

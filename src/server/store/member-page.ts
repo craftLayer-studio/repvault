@@ -1,9 +1,9 @@
 import { and, asc, eq, gte } from "drizzle-orm";
-import { addGst, type ConsentPurpose } from "@/domain";
+import { addGst, daysToExpiry, membershipStatus, startOfDayIST, type ConsentPurpose } from "@/domain";
 import type { Db } from "../db/client";
 import { checkIns, customers, ptSessions, staff } from "../db/schema";
 import { consentState, customerByAccessToken, recordConsent } from "./customers";
-import { currentMembership, latestMembership, listPlans, summarize, upiLink } from "./memberships";
+import { currentMembership, latestMembership, listPlans, summarize, toPeriod, upiLink } from "./memberships";
 import { orgById } from "./org";
 import { listTrainers } from "./pt";
 
@@ -15,6 +15,12 @@ export async function memberPage(db: Db, accessToken: string, nowMs = Date.now()
   const latest = await latestMembership(db, org.id, c.id);
   const summary = m ? summarize(m, nowMs) : null;
   const renewsTo = latest && m && latest.id !== m.id ? latest.endAt.getTime() : null;
+  if (summary && m && renewsTo) {
+    // Renewed early: covered until the renewal's end, so not "expiring".
+    const combined = { ...toPeriod(m), endAt: renewsTo };
+    summary.status = membershipStatus(combined, nowMs);
+    summary.daysToExpiry = daysToExpiry(combined, nowMs);
+  }
   const plans = (await listPlans(db, org.id)).map((p) => {
     const { total } = addGst(p.pricePaise, p.gstBp);
     return { id: p.id, name: p.name, durationDays: p.durationDays, totalPaise: total, upi: upiLink(org, total, `${p.name} - ${c.name}`.slice(0, 80), c.id.slice(-12)) };
@@ -41,6 +47,7 @@ export async function memberPage(db: Db, accessToken: string, nowMs = Date.now()
     pt: pt.map((p) => ({ ...p, startsAt: p.startsAt.getTime() })),
     trainers: c.kind === "member" ? (await listTrainers(db, org.id)).map((t) => ({ id: t.id, name: t.name, ptRatePaise: t.ptRatePaise })) : [],
     consent: await consentState(db, org.id, c.id),
+    today: startOfDayIST(nowMs),
   };
 }
 

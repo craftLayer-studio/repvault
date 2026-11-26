@@ -82,10 +82,11 @@ export async function seedDemo(db: Db, nowMs = Date.now()): Promise<{ orgId: str
   }
 
   const planDefs = [
-    { name: "Monthly", durationDays: 30, pricePaise: 149900 },
-    { name: "Quarterly", durationDays: 90, pricePaise: 399900 },
-    { name: "Half-yearly", durationDays: 180, pricePaise: 699900 },
-    { name: "Annual", durationDays: 365, pricePaise: 1199900 },
+    // Base prices chosen so the 5% GST-inclusive totals are round: ₹1,600 / ₹4,400 / ₹8,000 / ₹14,000.
+    { name: "Monthly", durationDays: 30, pricePaise: 152381 },
+    { name: "Quarterly", durationDays: 90, pricePaise: 419048 },
+    { name: "Half-yearly", durationDays: 180, pricePaise: 761905 },
+    { name: "Annual", durationDays: 365, pricePaise: 1333333 },
   ];
   const plans = planDefs.map((p) => ({ id: newId("pln"), orgId, gstBp: 500, active: true, ...p }));
   await db.insert(t.plans).values(plans);
